@@ -34,6 +34,12 @@
         </td>
       </ng-container>
 
+      <!-- Fups Column -->
+      <ng-container matColumnDef="fups">
+        <th mat-header-cell *matHeaderCellDef>Fups</th>
+        <td mat-cell *matCellDef="let event">{{ event.start.length - 1 || '—' }}</td>
+      </ng-container>
+
       <!-- Tags Column -->
       <ng-container matColumnDef="tags">
         <th mat-header-cell *matHeaderCellDef>Tags</th>

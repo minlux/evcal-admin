@@ -39,13 +39,14 @@ export class EventListComponent implements OnInit {
 
   events: CalendarEvent[] = [];
   loading = false;
-  displayedColumns: string[] = ['title', 'start', 'tags', 'actions'];
+  displayedColumns: string[] = ['title', 'start', 'fups', 'tags', 'actions'];
 
   ngOnInit(): void {
     this.loadEvents();
   }
 
   loadEvents(): void {
+    console.log('Loading events...');
     this.loading = true;
     this.eventService.getEvents().subscribe({
       next: (events) => {

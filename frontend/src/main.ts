@@ -1,5 +1,5 @@
 import { bootstrapApplication } from '@angular/platform-browser';
-import { provideAnimations } from '@angular/platform-browser/animations';
+import { provideZoneChangeDetection } from '@angular/core';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 
@@ -10,8 +10,8 @@ import { apiPrefixInterceptor } from './app/core/interceptors/api-prefix.interce
 
 bootstrapApplication(AppComponent, {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     provideHttpClient(withInterceptors([apiPrefixInterceptor, jwtInterceptor])),
-    provideAnimations(),
   ],
 }).catch((err) => console.error(err));

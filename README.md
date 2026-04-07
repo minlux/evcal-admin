@@ -92,10 +92,10 @@ Generate a bcrypt hash for your admin password and put it in `src/users.php`:
 php bin/generate_hash.php yourpassword
 ```
 
-Point your web server's document root to `backend/public/`. For local development with the built-in PHP server:
+For local development with the built-in PHP server:
 
 ```bash
-php -S localhost:8080 -t public
+php -S localhost:4280 -t .
 ```
 
 ### 3. Frontend

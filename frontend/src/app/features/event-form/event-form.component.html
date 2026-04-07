@@ -1,0 +1,101 @@
+<h2 mat-dialog-title>{{ isEditMode ? 'Edit Event' : 'New Event' }}</h2>
+
+<mat-dialog-content>
+  <form #eventForm="ngForm" class="event-form">
+
+    <!-- Title -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Title</mat-label>
+      <input
+        matInput
+        name="title"
+        [(ngModel)]="formData.title"
+        required
+        placeholder="Event title"
+      />
+    </mat-form-field>
+
+    <!-- Start dates -->
+    <div class="section-label">Start Dates</div>
+    @for (date of formData.start; track $index) {
+      <div class="date-row">
+        <mat-form-field appearance="outline" class="date-field">
+          <mat-label>Date {{ $index + 1 }}</mat-label>
+          <input
+            matInput
+            type="datetime-local"
+            [name]="'start_' + $index"
+            [(ngModel)]="formData.start[$index]"
+          />
+        </mat-form-field>
+        <button
+          mat-icon-button
+          color="warn"
+          type="button"
+          (click)="removeDate($index)"
+          [disabled]="formData.start.length === 1"
+          aria-label="Remove date"
+        >
+          <mat-icon>remove_circle_outline</mat-icon>
+        </button>
+      </div>
+    }
+    <button mat-stroked-button type="button" (click)="addDate()" class="add-btn">
+      <mat-icon>add</mat-icon> Add Date
+    </button>
+
+    <!-- Tags -->
+    <mat-form-field appearance="outline" class="full-width tag-field">
+      <mat-label>Tags</mat-label>
+      <mat-chip-grid #chipGrid aria-label="Tags">
+        @for (tag of formData.tags; track tag) {
+          <mat-chip-row (removed)="removeTag(tag)">
+            {{ tag }}
+            <button matChipRemove aria-label="Remove tag {{ tag }}">
+              <mat-icon>cancel</mat-icon>
+            </button>
+          </mat-chip-row>
+        }
+      </mat-chip-grid>
+      <input
+        placeholder="Add tag..."
+        [matChipInputFor]="chipGrid"
+        [matChipInputSeparatorKeyCodes]="separatorKeyCodes"
+        (matChipInputTokenEnd)="addTag($event)"
+      />
+    </mat-form-field>
+
+    <!-- Description -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Description</mat-label>
+      <textarea
+        matInput
+        name="description"
+        [(ngModel)]="formData.description"
+        rows="4"
+        placeholder="Optional description"
+      ></textarea>
+    </mat-form-field>
+
+    @if (errorMessage) {
+      <p class="error-message">{{ errorMessage }}</p>
+    }
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="onCancel()">Cancel</button>
+  <button
+    mat-raised-button
+    color="primary"
+    type="button"
+    (click)="onSave()"
+    [disabled]="loading || !formData.title"
+  >
+    @if (loading) {
+      <mat-spinner diameter="20" />
+    } @else {
+      {{ isEditMode ? 'Update' : 'Create' }}
+    }
+  </button>
+</mat-dialog-actions>

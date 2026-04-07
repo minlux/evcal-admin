@@ -1,0 +1,404 @@
+openapi: 3.1.0
+info:
+  title: evcal-admin API
+  description: REST API for managing calendar events, with a public endpoint for embedding event data in external websites.
+  version: 1.0.0
+
+servers:
+  - url: /api
+    description: Relative to deployment root
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Event:
+      type: object
+      required: [id, title, start, tags, description]
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Übung Feuerwehr
+        start:
+          type: array
+          items:
+            type: string
+            format: date-time
+          example:
+            - "2026-06-10T19:00:00"
+            - "2026-06-13T19:00:00"
+        tags:
+          type: array
+          items:
+            type: string
+          example: [feuerwehr, übung]
+        description:
+          type: string
+          example: Reguläre Übung der Feuerwehr.
+
+    EventInput:
+      type: object
+      required: [title, start, tags, description]
+      properties:
+        title:
+          type: string
+          example: Übung Feuerwehr
+        start:
+          type: array
+          items:
+            type: string
+            format: date-time
+          example:
+            - "2026-06-10T19:00:00"
+            - "2026-06-13T19:00:00"
+        tags:
+          type: array
+          items:
+            type: string
+          example: [feuerwehr, übung]
+        description:
+          type: string
+          example: Reguläre Übung der Feuerwehr.
+
+    PublicEvent:
+      type: object
+      required: [id, title, start, tags, description, followup]
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Übung Feuerwehr
+        start:
+          type: string
+          format: date-time
+          description: The specific occurrence date for this entry.
+          example: "2026-06-10T19:00:00"
+        tags:
+          type: array
+          items:
+            type: string
+          example: [feuerwehr, übung]
+        description:
+          type: string
+          example: Reguläre Übung der Feuerwehr.
+        followup:
+          type: array
+          description: Remaining dates of this event after the current occurrence.
+          items:
+            type: string
+            format: date-time
+          example:
+            - "2026-06-13T19:00:00"
+
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          example: admin
+        password:
+          type: string
+          format: password
+          example: secret
+
+    LoginResponse:
+      type: object
+      required: [token]
+      properties:
+        token:
+          type: string
+          description: Signed JWT. Valid for 8 hours.
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+          example: Unauthorized
+
+paths:
+  /test:
+    get:
+      summary: Backend health check
+      description: Returns PHP environment info and DB connection status. No authentication required. Useful for verifying the backend is running correctly.
+      operationId: test
+      tags: [Diagnostics]
+      responses:
+        '200':
+          description: Diagnostic information.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  php_version:
+                    type: string
+                    example: "8.3.0"
+                  php_sapi:
+                    type: string
+                    example: apache2handler
+                  extensions:
+                    type: object
+                    properties:
+                      pdo:       { type: boolean }
+                      pdo_mysql: { type: boolean }
+                      openssl:   { type: boolean }
+                      mbstring:  { type: boolean }
+                      json:      { type: boolean }
+                  database:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        enum: [ok, error]
+                      error:
+                        type: string
+                        nullable: true
+                  server:
+                    type: object
+                    properties:
+                      software:    { type: string, nullable: true }
+                      request_uri: { type: string, nullable: true }
+                      script_name: { type: string, nullable: true }
+
+  /auth/login:
+    post:
+      summary: Login
+      description: Authenticate with username and password. Returns a JWT to be used as a Bearer token on all protected routes.
+      operationId: login
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /events:
+    get:
+      summary: List all events
+      operationId: listEvents
+      tags: [Events]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Array of all events.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+        '401':
+          description: Missing or invalid token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Create an event
+      operationId: createEvent
+      tags: [Events]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventInput'
+      responses:
+        '201':
+          description: Event created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '401':
+          description: Missing or invalid token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /events/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        example: 1
+
+    get:
+      summary: Get a single event
+      operationId: getEvent
+      tags: [Events]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: The requested event.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '404':
+          description: Event not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Missing or invalid token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Update an event
+      operationId: updateEvent
+      tags: [Events]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventInput'
+      responses:
+        '200':
+          description: Updated event.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '404':
+          description: Event not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Missing or invalid token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Delete an event
+      operationId: deleteEvent
+      tags: [Events]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Event deleted.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+        '404':
+          description: Event not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Missing or invalid token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /public/events:
+    get:
+      summary: Public event list
+      description: |
+        Returns a flat, expanded list of events for embedding in external websites. No authentication required.
+
+        Multi-date events are expanded into one entry per date. Each entry includes a `followup` array listing the remaining dates of that event after the current occurrence.
+
+        **Date range:** Both `start` and `end` accept relative offsets from today:
+        - `+3d` / `-3d` — days
+        - `+2m` / `-2m` — months
+        - `+1y` / `-1y` — years
+
+        If neither parameter is provided, only today's events are returned.
+
+        **Tag filter syntax:**
+        - Comma (`,`) = OR — `feuerwehr,übung` matches events tagged with either
+        - Plus (`+`) = AND — `feuerwehr+übung` matches events tagged with both
+        - Mixed — `a,b,c+d` evaluates as `a || b || (c && d)`
+      operationId: publicEvents
+      tags: [Public]
+      parameters:
+        - name: start
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: '^[+-]\d+[dmy]$'
+          example: "+0d"
+          description: Lower bound date as a relative offset from today.
+        - name: end
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: '^[+-]\d+[dmy]$'
+          example: "+30d"
+          description: Upper bound date as a relative offset from today.
+        - name: tags
+          in: query
+          required: false
+          schema:
+            type: string
+          example: "feuerwehr,übung"
+          description: Tag filter expression.
+      responses:
+        '200':
+          description: Expanded list of matching events.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PublicEvent'

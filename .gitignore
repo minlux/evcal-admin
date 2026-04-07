@@ -1,0 +1,17 @@
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+
+# Dev / personal
+claude.txt
+curls.txt
+
+# Backend
+backend/vendor/
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store
+*.swp

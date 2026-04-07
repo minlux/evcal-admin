@@ -1,0 +1,45 @@
+.event-form {
+  display: flex;
+  flex-direction: column;
+  min-width: 420px;
+  padding-top: 8px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.section-label {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.6);
+  margin-bottom: 4px;
+}
+
+.date-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.date-field {
+  flex: 1;
+}
+
+.add-btn {
+  margin-bottom: 16px;
+  align-self: flex-start;
+}
+
+.tag-field {
+  margin-top: 8px;
+}
+
+.error-message {
+  color: #f44336;
+  font-size: 14px;
+}
+
+mat-spinner {
+  display: inline-block;
+}

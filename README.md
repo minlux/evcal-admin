@@ -34,9 +34,9 @@ All routes require `Authorization: Bearer <token>`.
 
 The public endpoint supports filtering by date range and tags:
 
-- `?start=+0d&end=+30d` — events in the next 30 days (relative offsets: `+3d`, `-2m`, `+1y`, etc.)
+- `?start=+0d&end=+30d` — events in the next 30 days (relative offsets: `+3d`, `-2m`, `+1y`, etc.; absolute dates also accepted: `2025-01-01`)
 - `?tags=feuerwehr,übung` — OR filter; use `+` for AND: `?tags=feuerwehr+übung`
-- Without `start`/`end`, only today's events are returned
+- `start` and `end` are independent boundaries — omitting one removes that boundary entirely (e.g. no `end` returns all future events, no `start` returns all past events, omitting both returns all events)
 
 Multi-date events are expanded into one entry per date. Each entry includes a `followup` array with the remaining dates of that event.
 

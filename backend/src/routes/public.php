@@ -105,18 +105,16 @@ return function (App $app): void {
         $hasStart = isset($params['start']) && $params['start'] !== '';
         $hasEnd   = isset($params['end'])   && $params['end']   !== '';
 
-        if (!$hasStart && !$hasEnd) {
-            // Default: only today
-            $startDate = clone $today;
-            $endDate   = clone $today;
-        } else {
-            $startDate = parse_date_param($params['start'] ?? null, $today, $today);
-            $endDate   = parse_date_param($params['end']   ?? null, $today, $today);
-        }
+        // null means no boundary in that direction
+        $startDate = $hasStart ? parse_date_param($params['start'], $today, $today) : null;
+        $endDate   = $hasEnd   ? parse_date_param($params['end'],   $today, $today) : null;
 
-        // Normalize to midnight for comparison
-        $startDate->setTime(0, 0, 0);
-        $endDate->setTime(23, 59, 59);
+        if ($startDate !== null) {
+            $startDate->setTime(0, 0, 0);
+        }
+        if ($endDate !== null) {
+            $endDate->setTime(23, 59, 59);
+        }
 
         $tagFilter = isset($params['tags']) ? trim($params['tags']) : '';
 
@@ -152,7 +150,10 @@ return function (App $app): void {
 
                 $dt->setTime(0, 0, 0);
 
-                if ($dt < $startDate || $dt > $endDate) {
+                if ($startDate !== null && $dt < $startDate) {
+                    continue;
+                }
+                if ($endDate !== null && $dt > $endDate) {
                     continue;
                 }
 

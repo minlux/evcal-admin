@@ -148,12 +148,13 @@ return function (App $app): void {
                     continue;
                 }
 
-                $dt->setTime(0, 0, 0);
+                // Compare by day only, but keep the time of day for the output
+                $day = (clone $dt)->setTime(0, 0, 0);
 
-                if ($startDate !== null && $dt < $startDate) {
+                if ($startDate !== null && $day < $startDate) {
                     continue;
                 }
-                if ($endDate !== null && $dt > $endDate) {
+                if ($endDate !== null && $day > $endDate) {
                     continue;
                 }
 
